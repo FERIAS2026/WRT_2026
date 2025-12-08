@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pedido de Férias 2026</title>
+<title> Férias 2026</title>
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -91,15 +91,13 @@ const supabase = createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpam5kZnN4cnpqdml3cmR2d21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NTA5NTIsImV4cCI6MjA2NjQyNjk1Mn0.EWaFInuqTaxvnjytb40DdnflEbBrbSYcViKLYc_kKBk'
 );
 
-// ---- FERIADOS ----
+// FERIADOS
 const feriados = ["2025-04-25","2025-04-18","2025-05-01","2025-12-25","2026-01-01"];
 
-// ---- FUNÇÕES ----
+// FUNÇÕES AUXILIARES
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
-    let start = new Date(dataInicio);
-    let end = new Date(dataFim);
-    for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    for(let d=new Date(dataInicio); d<=new Date(dataFim); d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
         if(dia===0 || dia===6 || feriados.includes(f)) conflitos.push(f);
@@ -139,7 +137,6 @@ async function verificarLimites(nome,tipoDias,diasNovo){
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
         "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
     };
-
     const { data } = await supabase
         .from('fid_coordenacao')
         .select('total_dias,tipo_dias')
@@ -155,7 +152,7 @@ async function verificarLimites(nome,tipoDias,diasNovo){
     return { pode:true };
 }
 
-// --- SUBMIT ---
+// SUBMIT DO FORMULÁRIO
 document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     e.preventDefault();
 
@@ -164,14 +161,14 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
 
-    // REGRA 1 - FÉRIAS 2025 ATÉ 30/04/2026
+    // REGRA 1: Férias 2025 até 30/04/2026
     if(tipoDias === "F25" && (dataInicio > "2026-04-30" || dataFim > "2026-04-30")){
         document.getElementById("errorMessages").innerText = "❌ Férias 2025 só podem ser marcadas até 30/04/2026.";
         document.getElementById("errorMessages").style.display="block";
         return;
     }
 
-    // REGRA 2 - BLOQUEIO DE DEZEMBRO 2026 (exceto 24/12/2026)
+    // REGRA 2: Dezembro 2026 bloqueado exceto 24/12/2026
     const inicioDec = "2026-12-01", fimDec = "2026-12-30", excecao = "2026-12-24";
     for(let d=new Date(dataInicio); d<=new Date(dataFim); d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
@@ -182,6 +179,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         }
     }
 
+    // CONFLITOS COM FDS OU FERIADOS
     const conflitosDatas = listarConflitosFDS_FERIADOS(dataInicio,dataFim);
     if(conflitosDatas.length > 0){
         document.getElementById("errorMessages").innerText = "❌ Pedido não pode conter Fins de Semana ou Feriados: " + conflitosDatas.join(", ");
@@ -189,7 +187,10 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         return;
     }
 
+    // CALCULAR DIAS ÚTEIS
     const totalDias = calcularDiasEntreDatas(dataInicio,dataFim);
+
+    // VERIFICAR DATAS DUPLICADAS
     const duplicadas = await verificarDatasDuplicadas(nome,dataInicio,dataFim);
     if(duplicadas.length > 0){
         document.getElementById("errorMessages").innerText = "❌ Datas em conflito: " + duplicadas.map(c=>`${c.data_inicio} a ${c.data_fim}`).join(", ");
@@ -197,13 +198,14 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         return;
     }
 
+    // VERIFICAR LIMITES
     const limite = await verificarLimites(nome,tipoDias,totalDias);
     if(!limite.pode){
         let msg = "";
-        let autorizados = limite.limiteTotal;
-        if(tipoDias === "F25") msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
-        else if(tipoDias === "Preferenciais") msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
-        else if(tipoDias === "Não Preferenciais") msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
+        const autorizados = limite.limiteTotal;
+        if(tipoDias==="F25") msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
+        else if(tipoDias==="Preferenciais") msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
+        else msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
         document.getElementById("errorMessages").innerText = msg;
         document.getElementById("errorMessages").style.display="block";
         return;
