@@ -63,7 +63,7 @@ h1, h2 { text-align: center; }
 
 <!-- FORMULÁRIO -->
 <div id="formContainer">
-<h1>Pedidos de Férias 2026</h1>
+<h1>Pe2026</h1>
 
 <form id="reservaForm">
 <label for="nome">Nome:</label>
@@ -104,6 +104,19 @@ const supabase = createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpam5kZnN4cnpqdml3cmR2d21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NTA5NTIsImV4cCI6MjA2NjQyNjk1Mn0.EWaFInuqTaxvnjytb40DdnflEbBrbSYcViKLYc_kKBk'
 );
 
+// ---- LOGIN ----
+document.getElementById("btnEntrar").addEventListener("click", ()=>{
+    const senha = document.getElementById("password").value.trim();
+    if(senha === "TR1993"){
+        document.getElementById("passwordPrompt").style.display = "none";
+        document.getElementById("formContainer").style.display = "block";
+    } else {
+        const erro = document.getElementById("senhaErro");
+        erro.innerText = "Senha incorreta. Tente novamente.";
+        erro.style.display = "block";
+    }
+});
+
 // ---- FERIADOS ----
 const feriados = [
     "2025-04-25",
@@ -113,7 +126,7 @@ const feriados = [
     "2026-01-01"
 ];
 
-// ---- VERIFICAÇÃO FIM-DE-SEMANA / FERIADO COM LISTA ----
+// ---- VERIFICAÇÃO FIM-DE-SEMANA / FERIADO ----
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
     let start = new Date(dataInicio);
@@ -122,7 +135,6 @@ function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
-
         if(dia===0 || dia===6 || feriados.includes(f)){
             conflitos.push(f);
         }
@@ -134,7 +146,6 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     const start = new Date(dataInicio);
     const end = new Date(dataFim);
     let dias = 0;
-
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         const f = d.toISOString().split("T")[0];
         const dia = d.getDay();
@@ -163,7 +174,6 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
 
 // --- LIMITES ---
 async function verificarLimites(nome,tipoDias,diasNovo){
-
     const limites = {
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
         "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
@@ -293,16 +303,6 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     e.target.reset();
     document.getElementById("diasCalculados").innerText = "Dias úteis calculados: 0";
-});
-
-// --- LOGIN ---
-document.getElementById("btnEntrar").addEventListener("click",()=>{
-    if(document.getElementById("password").value === "TR1993"){
-        document.getElementById("passwordPrompt").style.display="none";
-        document.getElementById("formContainer").style.display="block";
-    } else {
-        document.getElementById("senhaErro").style.display="block";
-    }
 });
 </script>
 
