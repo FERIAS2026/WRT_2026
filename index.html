@@ -57,7 +57,8 @@ h1, h2 { text-align: center; }
 <h1>Pedidos de Férias 2026</h1>
 <label for="password">Digite a senha para acessar o formulário:</label>
 <input type="password" id="password" required>
-<button id="btnEntrar">Entrar</button>
+<!-- CORREÇÃO: type="button" para o login funcionar -->
+<button id="btnEntrar" type="button">Entrar</button>
 <div id="senhaErro" class="error">Senha incorreta. Tente novamente.</div>
 </div>
 
@@ -113,7 +114,6 @@ const feriados = [
     "2026-01-01"
 ];
 
-// ---- VERIFICAÇÃO FIM-DE-SEMANA / FERIADO COM LISTA ----
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
     let start = new Date(dataInicio);
@@ -122,7 +122,6 @@ function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
-
         if(dia===0 || dia===6 || feriados.includes(f)){
             conflitos.push(f);
         }
@@ -134,7 +133,6 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     const start = new Date(dataInicio);
     const end = new Date(dataFim);
     let dias = 0;
-
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         const f = d.toISOString().split("T")[0];
         const dia = d.getDay();
@@ -144,7 +142,6 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     return dias;
 }
 
-// --- DUPLICADAS ---
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabase
         .from('fid_coordenacao')
@@ -161,9 +158,7 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     });
 }
 
-// --- LIMITES ---
 async function verificarLimites(nome,tipoDias,diasNovo){
-
     const limites = {
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
         "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
@@ -184,7 +179,6 @@ async function verificarLimites(nome,tipoDias,diasNovo){
     return { pode:true };
 }
 
-// --- SUBMIT ---
 document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     e.preventDefault();
 
@@ -193,7 +187,6 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
 
-    // 🔥 REGRA 1 - FÉRIAS 2025 ATÉ 30/04/2026
     if(tipoDias === "F25"){
         const limiteF25 = "2026-04-30";
         if(dataInicio > limiteF25 || dataFim > limiteF25){
@@ -204,7 +197,6 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         }
     }
 
-    // 🔥 REGRA 2 - BLOQUEAR DEZEMBRO 2026 (exceto 24/12/2026)
     const inicioDec = "2026-12-01";
     const fimDec = "2026-12-30";
     const excecao = "2026-12-24";
@@ -249,17 +241,14 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     const limite = await verificarLimites(nome,tipoDias,totalDias);
     if(!limite.pode){
-
         let msg = "";
         let autorizados = limite.limiteTotal;
 
         if(tipoDias === "F25"){
             msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
-        }
-        else if(tipoDias === "Preferenciais"){
+        } else if(tipoDias === "Preferenciais"){
             msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
-        }
-        else if(tipoDias === "Não Preferenciais"){
+        } else if(tipoDias === "Não Preferenciais"){
             msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
         }
 
@@ -295,7 +284,6 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     document.getElementById("diasCalculados").innerText = "Dias úteis calculados: 0";
 });
 
-
 // --- LOGIN ---
 const btnEntrar = document.getElementById("btnEntrar");
 const senhaInput = document.getElementById("password");
@@ -303,12 +291,10 @@ const senhaErro = document.getElementById("senhaErro");
 const passwordPrompt = document.getElementById("passwordPrompt");
 const formContainer = document.getElementById("formContainer");
 
-btnEntrar.addEventListener("click", (e) => {
-    e.preventDefault(); // previne comportamento inesperado
-    senhaErro.style.display = "none"; // esconde erro anterior
-    const senha = senhaInput.value.trim(); // remove espaços extras
-
-    if(senha === "FID2026_COORD"){
+btnEntrar.addEventListener("click", () => {
+    senhaErro.style.display = "none";
+    const senha = senhaInput.value.trim();
+    if (senha === "FID2026_COORD") {
         passwordPrompt.style.display = "none";
         formContainer.style.display = "block";
     } else {
@@ -316,11 +302,9 @@ btnEntrar.addEventListener("click", (e) => {
     }
 });
 
-// Permite pressionar Enter para entrar
 senhaInput.addEventListener("keyup", (e) => {
-    if(e.key === "Enter") btnEntrar.click();
+    if (e.key === "Enter") btnEntrar.click();
 });
-
 </script>
 
 </body>
