@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pedido de Férias 2026</title>
+<title> Férias 2026</title>
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,7 +24,7 @@ body {
     max-width: 400px;
     width: 100%;
     margin-bottom: 20px;
-    display: block; /* já visível */
+    display: block;
 }
 label { display: block; margin-bottom: 10px; color: #0f3d2e; }
 select, input[type="date"] {
@@ -39,8 +39,6 @@ button {
 button:hover { background-color: #0c3326; }
 .error { color: #a33; margin-top: 10px; display: none; }
 .success { color: green; font-weight: bold; margin-top: 15px; }
-#detalhesReserva { margin-top: 20px; }
-h1, h2 { text-align: center; }
 #resumoPedidos div {
     border: 1px solid #0f3d2e;
     padding: 10px;
@@ -52,7 +50,6 @@ h1, h2 { text-align: center; }
 </head>
 <body>
 
-<!-- FORMULÁRIO -->
 <div id="formContainer">
 <h1>Pedidos de Férias 2026</h1>
 
@@ -104,18 +101,15 @@ const feriados = [
     "2026-01-01"
 ];
 
-// ---- VERIFICAÇÃO FIM-DE-SEMANA / FERIADO ----
+// ---- FUNÇÕES ----
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
     let start = new Date(dataInicio);
     let end = new Date(dataFim);
-
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
-        if(dia===0 || dia===6 || feriados.includes(f)){
-            conflitos.push(f);
-        }
+        if(dia===0 || dia===6 || feriados.includes(f)) conflitos.push(f);
     }
     return conflitos;
 }
@@ -133,7 +127,19 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     return dias;
 }
 
-// --- DUPLICADAS ---
+// Atualiza dias úteis ao escolher datas
+function atualizarDiasCalculados(){
+    const inicio = document.getElementById("dataInicio").value;
+    const fim = document.getElementById("dataFim").value;
+    if(inicio && fim){
+        const dias = calcularDiasEntreDatas(inicio,fim);
+        document.getElementById("diasCalculados").innerText = `Dias úteis calculados: ${dias}`;
+    }
+}
+
+document.getElementById("dataInicio").addEventListener("change", atualizarDiasCalculados);
+document.getElementById("dataFim").addEventListener("change", atualizarDiasCalculados);
+
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabase
         .from('FID_COORDENAÇÃO')
@@ -150,7 +156,6 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     });
 }
 
-// --- LIMITES ---
 async function verificarLimites(nome,tipoDias,diasNovo){
     const limites = {
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
@@ -181,7 +186,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
 
-    // 🔥 REGRA 1 - FÉRIAS 2025 ATÉ 30/04/2026
+    // Regra 1 - Férias 2025 até 30/04/2026
     if(tipoDias === "F25"){
         const limiteF25 = "2026-04-30";
         if(dataInicio > limiteF25 || dataFim > limiteF25){
@@ -192,7 +197,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         }
     }
 
-    // 🔥 REGRA 2 - BLOQUEAR DEZEMBRO 2026 (exceto 24/12/2026)
+    // Regra 2 - Bloquear Dezembro 2026 (exceto 24/12/2026)
     const inicioDec = "2026-12-01";
     const fimDec = "2026-12-30";
     const excecao = "2026-12-24";
@@ -202,9 +207,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         let end = new Date(d2);
         for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
             let f = d.toISOString().split("T")[0];
-            if(f >= inicioDec && f <= fimDec && f !== excecao){
-                return true;
-            }
+            if(f >= inicioDec && f <= fimDec && f !== excecao) return true;
         }
         return false;
     }
