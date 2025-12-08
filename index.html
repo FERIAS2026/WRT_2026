@@ -16,8 +16,7 @@ body {
     justify-content: center;
     padding-top: 40px;
 }
-
-#formContainer {
+#passwordPrompt, #formContainer {
     background-color: white;
     padding: 30px;
     border-radius: 12px;
@@ -25,11 +24,9 @@ body {
     max-width: 400px;
     width: 100%;
     margin-bottom: 20px;
-    display: block;
 }
-
 label { display: block; margin-bottom: 10px; color: #0f3d2e; }
-select, input[type="date"] {
+select, input[type="date"], input[type="password"] {
     padding: 8px; margin-bottom: 15px; width: 100%;
     border: 1px solid #0f3d2e; border-radius: 6px;
     background-color: #f8fdfb; color: #0f3d2e;
@@ -42,6 +39,7 @@ button:hover { background-color: #0c3326; }
 .error { color: #a33; margin-top: 10px; display: none; }
 .success { color: green; font-weight: bold; margin-top: 15px; }
 #detalhesReserva { margin-top: 20px; }
+#formContainer { display: none; }
 h1, h2 { text-align: center; }
 #resumoPedidos div {
     border: 1px solid #0f3d2e;
@@ -54,8 +52,18 @@ h1, h2 { text-align: center; }
 </head>
 <body>
 
+<!-- LOGIN -->
+<div id="passwordPrompt">
+<h1>Pedidos de Férias 2026</h1>
+<label for="password">Digite a senha para acessar o formulário:</label>
+<input type="password" id="password" required>
+<button id="btnEntrar">Entrar</button>
+<div id="senhaErro" class="error">Senha incorreta. Tente novamente.</div>
+</div>
+
+<!-- FORMULÁRIO -->
 <div id="formContainer">
-<h1>Férias 2026</h1>
+<h1>Pedidos de Férias 2026</h1>
 
 <form id="reservaForm">
 <label for="nome">Nome:</label>
@@ -185,7 +193,41 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
 
-    // 🔥 REGRAS (mantidas iguais)
+    // 🔥 REGRA 1 - FÉRIAS 2025 ATÉ 30/04/2026
+    if(tipoDias === "F25"){
+        const limiteF25 = "2026-04-30";
+        if(dataInicio > limiteF25 || dataFim > limiteF25){
+            document.getElementById("errorMessages").innerText =
+            "❌ Férias 2025 só podem ser marcadas até 30/04/2026.";
+            document.getElementById("errorMessages").style.display="block";
+            return;
+        }
+    }
+
+    // 🔥 REGRA 2 - BLOQUEAR DEZEMBRO 2026 (exceto 24/12/2026)
+    const inicioDec = "2026-12-01";
+    const fimDec = "2026-12-30";
+    const excecao = "2026-12-24";
+
+    function intervaloTemDezembro(d1,d2){
+        let start = new Date(d1);
+        let end = new Date(d2);
+        for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+            let f = d.toISOString().split("T")[0];
+            if(f >= inicioDec && f <= fimDec && f !== excecao){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    if(intervaloTemDezembro(dataInicio,dataFim)){
+        document.getElementById("errorMessages").innerText =
+        "❌ Mês de Dezembro 2026 está bloqueado, exceto 24/12/2026.";
+        document.getElementById("errorMessages").style.display="block";
+        return;
+    }
+
     const conflitosDatas = listarConflitosFDS_FERIADOS(dataInicio,dataFim);
     if(conflitosDatas.length > 0){
         document.getElementById("errorMessages").innerText =
@@ -207,28 +249,32 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     const limite = await verificarLimites(nome,tipoDias,totalDias);
     if(!limite.pode){
-        document.getElementById("errorMessages").innerText =
-        "❌ Limite de dias excedido.";
+
+        let msg = "";
+        let autorizados = limite.limiteTotal;
+
+        if(tipoDias === "F25"){
+            msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
+        }
+        else if(tipoDias === "Preferenciais"){
+            msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
+        }
+        else if(tipoDias === "Não Preferenciais"){
+            msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
+        }
+
+        document.getElementById("errorMessages").innerText = msg;
         document.getElementById("errorMessages").style.display="block";
         return;
     }
 
-    const { error } = await supabase
-        .from("fid_coordenacao")
-        .insert([{
-            nome,
-            tipo_dias: tipoDias,
-            data_inicio: dataInicio,
-            data_fim: dataFim,
-            total_dias: totalDias
-        }]);
-
-    if(error){
-        document.getElementById("errorMessages").innerText =
-        "❌ ERRO AO ENVIAR: " + error.message;
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
+    await supabase.from("fid_coordenacao").insert([{
+        nome,
+        tipo_dias: tipoDias,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        total_dias: totalDias
+    }]);
 
     document.getElementById("successMessage").innerText =
     `✔️ Pedido Registado: ${nome} (${tipoDias}) ${dataInicio} a ${dataFim} (${totalDias} dias úteis)`;
@@ -248,7 +294,18 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     e.target.reset();
     document.getElementById("diasCalculados").innerText = "Dias úteis calculados: 0";
 });
+
+// --- LOGIN ---
+document.getElementById("btnEntrar").addEventListener("click",()=>{
+    if(document.getElementById("password").value === "FID2026_COORD"){
+        document.getElementById("passwordPrompt").style.display="none";
+        document.getElementById("formContainer").style.display="block";
+    } else {
+        document.getElementById("senhaErro").style.display="block";
+    }
+});
 </script>
 
 </body>
 </html>
+
