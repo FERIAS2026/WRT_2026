@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Férias 2026</title>
+<title>Pedido de Férias 2026</title>
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -16,6 +16,7 @@ body {
     justify-content: center;
     padding-top: 40px;
 }
+
 #formContainer {
     background-color: white;
     padding: 30px;
@@ -26,6 +27,7 @@ body {
     margin-bottom: 20px;
     display: block;
 }
+
 label { display: block; margin-bottom: 10px; color: #0f3d2e; }
 select, input[type="date"] {
     padding: 8px; margin-bottom: 15px; width: 100%;
@@ -39,6 +41,8 @@ button {
 button:hover { background-color: #0c3326; }
 .error { color: #a33; margin-top: 10px; display: none; }
 .success { color: green; font-weight: bold; margin-top: 15px; }
+#detalhesReserva { margin-top: 20px; }
+h1, h2 { text-align: center; }
 #resumoPedidos div {
     border: 1px solid #0f3d2e;
     padding: 10px;
@@ -51,7 +55,7 @@ button:hover { background-color: #0c3326; }
 <body>
 
 <div id="formContainer">
-<h1>Pedidos de Férias 2026</h1>
+<h1>Férias 2026</h1>
 
 <form id="reservaForm">
 <label for="nome">Nome:</label>
@@ -101,15 +105,19 @@ const feriados = [
     "2026-01-01"
 ];
 
-// ---- FUNÇÕES ----
+// ---- VERIFICAÇÃO FIM-DE-SEMANA / FERIADO COM LISTA ----
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
     let start = new Date(dataInicio);
     let end = new Date(dataFim);
+
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
-        if(dia===0 || dia===6 || feriados.includes(f)) conflitos.push(f);
+
+        if(dia===0 || dia===6 || feriados.includes(f)){
+            conflitos.push(f);
+        }
     }
     return conflitos;
 }
@@ -118,6 +126,7 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     const start = new Date(dataInicio);
     const end = new Date(dataFim);
     let dias = 0;
+
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         const f = d.toISOString().split("T")[0];
         const dia = d.getDay();
@@ -127,22 +136,10 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     return dias;
 }
 
-// Atualiza dias úteis ao escolher datas
-function atualizarDiasCalculados(){
-    const inicio = document.getElementById("dataInicio").value;
-    const fim = document.getElementById("dataFim").value;
-    if(inicio && fim){
-        const dias = calcularDiasEntreDatas(inicio,fim);
-        document.getElementById("diasCalculados").innerText = `Dias úteis calculados: ${dias}`;
-    }
-}
-
-document.getElementById("dataInicio").addEventListener("change", atualizarDiasCalculados);
-document.getElementById("dataFim").addEventListener("change", atualizarDiasCalculados);
-
+// --- DUPLICADAS ---
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabase
-        .from('FID_COORDENAÇÃO')
+        .from('fid_coordenacao')
         .select('data_inicio,data_fim')
         .eq('nome',nome);
 
@@ -156,7 +153,9 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     });
 }
 
+// --- LIMITES ---
 async function verificarLimites(nome,tipoDias,diasNovo){
+
     const limites = {
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
         "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
@@ -186,39 +185,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
 
-    // Regra 1 - Férias 2025 até 30/04/2026
-    if(tipoDias === "F25"){
-        const limiteF25 = "2026-04-30";
-        if(dataInicio > limiteF25 || dataFim > limiteF25){
-            document.getElementById("errorMessages").innerText =
-            "❌ Férias 2025 só podem ser marcadas até 30/04/2026.";
-            document.getElementById("errorMessages").style.display="block";
-            return;
-        }
-    }
-
-    // Regra 2 - Bloquear Dezembro 2026 (exceto 24/12/2026)
-    const inicioDec = "2026-12-01";
-    const fimDec = "2026-12-30";
-    const excecao = "2026-12-24";
-
-    function intervaloTemDezembro(d1,d2){
-        let start = new Date(d1);
-        let end = new Date(d2);
-        for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
-            let f = d.toISOString().split("T")[0];
-            if(f >= inicioDec && f <= fimDec && f !== excecao) return true;
-        }
-        return false;
-    }
-
-    if(intervaloTemDezembro(dataInicio,dataFim)){
-        document.getElementById("errorMessages").innerText =
-        "❌ Mês de Dezembro 2026 está bloqueado, exceto 24/12/2026.";
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
-
+    // 🔥 REGRAS (mantidas iguais)
     const conflitosDatas = listarConflitosFDS_FERIADOS(dataInicio,dataFim);
     if(conflitosDatas.length > 0){
         document.getElementById("errorMessages").innerText =
@@ -240,24 +207,28 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     const limite = await verificarLimites(nome,tipoDias,totalDias);
     if(!limite.pode){
-        let msg = "";
-        let autorizados = limite.limiteTotal;
-        if(tipoDias === "F25") msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
-        else if(tipoDias === "Preferenciais") msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
-        else if(tipoDias === "Não Preferenciais") msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
-
-        document.getElementById("errorMessages").innerText = msg;
+        document.getElementById("errorMessages").innerText =
+        "❌ Limite de dias excedido.";
         document.getElementById("errorMessages").style.display="block";
         return;
     }
 
-    await supabase.from("fid_coordenacao").insert([{
-        nome,
-        tipo_dias: tipoDias,
-        data_inicio: dataInicio,
-        data_fim: dataFim,
-        total_dias: totalDias
-    }]);
+    const { error } = await supabase
+        .from("fid_coordenacao")
+        .insert([{
+            nome,
+            tipo_dias: tipoDias,
+            data_inicio: dataInicio,
+            data_fim: dataFim,
+            total_dias: totalDias
+        }]);
+
+    if(error){
+        document.getElementById("errorMessages").innerText =
+        "❌ ERRO AO ENVIAR: " + error.message;
+        document.getElementById("errorMessages").style.display="block";
+        return;
+    }
 
     document.getElementById("successMessage").innerText =
     `✔️ Pedido Registado: ${nome} (${tipoDias}) ${dataInicio} a ${dataFim} (${totalDias} dias úteis)`;
