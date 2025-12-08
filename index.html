@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Newspring Services</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url('TESTE1.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      max-width: 350px;
+      width: 100%;
+      text-align: center;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>Marcação de Férias 2026</h2>
+
+    <form onsubmit="return irParaEquipa(event)">
+      
+      <select id="equipa" required>
+        <option value="">-- Selecionar Equipa --</option>
+        <option value="equipa1">B2B</option>
+        <option value="equipa2">Inbound</option>
+        <option value="equipa3">Gestão e Supervisão</option>
+      </select>
+
+      <button type="submit">Seguinte</button>
+    </form>
+
+    <p id="erro" class="error"></p>
+  </div>
+
+
+<script>
+
+  // 🔗 DEFINIR DESTINOS
+  const rotas = {
+    equipa1: "B2B.html",
+    equipa2: "PatriciaAndre.html",
+    equipa3: "OutraPagina.html"   // 👈 podes trocar quando souberes o nome
+  };
+
+  function irParaEquipa(event) {
+    event.preventDefault();
+
+    const equipa = document.getElementById("equipa").value;
+    const erro = document.getElementById("erro");
+    erro.textContent = "";
+
+    if (!equipa) {
+      erro.textContent = "Selecione uma equipa.";
+      return;
+    }
+
+    // 👉 Redirecionar
+    window.location.href = rotas[equipa];
+  }
+
+</script>
+
+</body>
+</html>
