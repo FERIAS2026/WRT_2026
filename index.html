@@ -54,7 +54,7 @@ h1, h2 { text-align: center; }
 
 <!-- LOGIN -->
 <div id="passwordPrompt">
-<h1>TESTE</h1>
+<h1>LOGIN</h1>
 <label for="password">Digite a senha para acessar o formulário:</label>
 <input type="password" id="password" required>
 <button id="btnEntrar">Entrar</button>
@@ -96,27 +96,29 @@ h1, h2 { text-align: center; }
 <div id="resumoPedidos"></div>
 </div>
 
-<!-- LOGIN SCRIPT SEPARADO -->
+<!-- LOGIN SCRIPT -->
 <script>
+const passwordPrompt = document.getElementById("passwordPrompt");
+const formContainer = document.getElementById("formContainer");
+const senhaErro = document.getElementById("senhaErro");
+
 document.getElementById("btnEntrar").addEventListener("click", () => {
     const senha = document.getElementById("password").value.trim();
-    if (senha === "TR1993") {
-        document.getElementById("passwordPrompt").style.display = "none";
-        document.getElementById("formContainer").style.display = "block";
+    if(senha === "TR1993"){
+        passwordPrompt.style.display = "none";
+        formContainer.style.display = "block";
+        initForm(); // Inicializa o formulário somente após login
     } else {
-        const erro = document.getElementById("senhaErro");
-        erro.innerText = "Senha incorreta. Tente novamente.";
-        erro.style.display = "block";
+        senhaErro.style.display = "block";
     }
 });
 
-// Limpar mensagem de erro enquanto digita
 document.getElementById("password").addEventListener("input", () => {
-    document.getElementById("senhaErro").style.display = "none";
+    senhaErro.style.display = "none";
 });
 </script>
 
-<!-- SCRIPT PRINCIPAL DO FORMULÁRIO -->
+<!-- FORMULÁRIO + SUPABASE SCRIPT -->
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
@@ -125,10 +127,10 @@ const supabase = createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpam5kZnN4cnpqdml3cmR2d21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NTA5NTIsImV4cCI6MjA2NjQyNjk1Mn0.EWaFInuqTaxvnjytb40DdnflEbBrbSYcViKLYc_kKBk'
 );
 
-// ---- FERIADOS ----
+// FERIADOS
 const feriados = ["2025-04-25","2025-04-18","2025-05-01","2025-12-25","2026-01-01"];
 
-// ---- FUNÇÕES DO FORMULÁRIO ----
+// FUNÇÕES AUXILIARES
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
     let start = new Date(dataInicio);
@@ -159,10 +161,8 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
         .from('fid_coordenacao')
         .select('data_inicio,data_fim')
         .eq('nome',nome);
-
     const inicioNovo = new Date(dataInicio);
     const fimNovo = new Date(dataFim);
-
     return data.filter(p=>{
         const inicio = new Date(p.data_inicio);
         const fim = new Date(p.data_fim);
@@ -175,118 +175,125 @@ async function verificarLimites(nome,tipoDias,diasNovo){
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
         "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
     };
-
     const { data } = await supabase
         .from('fid_coordenacao')
         .select('total_dias,tipo_dias')
         .eq('nome',nome)
         .eq('tipo_dias',tipoDias);
-
     let usados = data.reduce((s,p)=>s+p.total_dias,0);
     let limite = limites[nome][tipoDias];
-
     if(usados + diasNovo > limite){
         return { pode:false, limiteTotal: limite };
     }
     return { pode:true };
 }
 
-// --- SUBMIT FORMULÁRIO ---
-document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
-    e.preventDefault();
+// INICIALIZA FORMULÁRIO (apenas após login)
+function initForm(){
+    const form = document.getElementById("reservaForm");
+    form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
 
-    const nome = document.getElementById("nome").value;
-    const tipoDias = document.getElementById("tipoDias").value;
-    const dataInicio = document.getElementById("dataInicio").value;
-    const dataFim = document.getElementById("dataFim").value;
+        const nome = document.getElementById("nome").value;
+        const tipoDias = document.getElementById("tipoDias").value;
+        const dataInicio = document.getElementById("dataInicio").value;
+        const dataFim = document.getElementById("dataFim").value;
 
-    if(tipoDias === "F25"){
-        const limiteF25 = "2026-04-30";
-        if(dataInicio > limiteF25 || dataFim > limiteF25){
-            document.getElementById("errorMessages").innerText =
-            "❌ Férias 2025 só podem ser marcadas até 30/04/2026.";
-            document.getElementById("errorMessages").style.display="block";
+        const errorMessages = document.getElementById("errorMessages");
+        const successMessage = document.getElementById("successMessage");
+
+        // REGRA FÉRIAS 2025
+        if(tipoDias === "F25"){
+            const limiteF25 = "2026-04-30";
+            if(dataInicio > limiteF25 || dataFim > limiteF25){
+                errorMessages.innerText = "❌ Férias 2025 só podem ser marcadas até 30/04/2026.";
+                errorMessages.style.display="block";
+                return;
+            }
+        }
+
+        // BLOQUEAR DEZEMBRO 2026 (exceto 24/12/2026)
+        const inicioDec = "2026-12-01";
+        const fimDec = "2026-12-30";
+        const excecao = "2026-12-24";
+        function intervaloTemDezembro(d1,d2){
+            let start = new Date(d1);
+            let end = new Date(d2);
+            for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+                let f = d.toISOString().split("T")[0];
+                if(f >= inicioDec && f <= fimDec && f !== excecao) return true;
+            }
+            return false;
+        }
+        if(intervaloTemDezembro(dataInicio,dataFim)){
+            errorMessages.innerText = "❌ Mês de Dezembro 2026 está bloqueado, exceto 24/12/2026.";
+            errorMessages.style.display="block";
             return;
         }
-    }
 
-    const inicioDec = "2026-12-01";
-    const fimDec = "2026-12-30";
-    const excecao = "2026-12-24";
-
-    function intervaloTemDezembro(d1,d2){
-        let start = new Date(d1);
-        let end = new Date(d2);
-        for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
-            let f = d.toISOString().split("T")[0];
-            if(f >= inicioDec && f <= fimDec && f !== excecao) return true;
+        const conflitosDatas = listarConflitosFDS_FERIADOS(dataInicio,dataFim);
+        if(conflitosDatas.length > 0){
+            errorMessages.innerText = "❌ Pedido não pode conter Fins de Semana ou Feriados: " + conflitosDatas.join(", ");
+            errorMessages.style.display="block";
+            return;
         }
-        return false;
-    }
 
-    if(intervaloTemDezembro(dataInicio,dataFim)){
-        document.getElementById("errorMessages").innerText =
-        "❌ Mês de Dezembro 2026 está bloqueado, exceto 24/12/2026.";
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
+        const totalDias = calcularDiasEntreDatas(dataInicio,dataFim);
+        const duplicadas = await verificarDatasDuplicadas(nome,dataInicio,dataFim);
+        if(duplicadas.length > 0){
+            let conflitoMsg = duplicadas.map(c=>`${c.data_inicio} a ${c.data_fim}`).join(", ");
+            errorMessages.innerText = "❌ Datas em conflito: " + conflitoMsg;
+            errorMessages.style.display="block";
+            return;
+        }
 
-    const conflitosDatas = listarConflitosFDS_FERIADOS(dataInicio,dataFim);
-    if(conflitosDatas.length > 0){
-        document.getElementById("errorMessages").innerText =
-        "❌ Pedido não pode conter Fins de Semana ou Feriados: " + conflitosDatas.join(", ");
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
+        const limite = await verificarLimites(nome,tipoDias,totalDias);
+        if(!limite.pode){
+            let msg = "";
+            let autorizados = limite.limiteTotal;
+            if(tipoDias === "F25") msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
+            else if(tipoDias === "Preferenciais") msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
+            else if(tipoDias === "Não Preferenciais") msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
+            errorMessages.innerText = msg;
+            errorMessages.style.display="block";
+            return;
+        }
 
-    const totalDias = calcularDiasEntreDatas(dataInicio,dataFim);
-    const duplicadas = await verificarDatasDuplicadas(nome,dataInicio,dataFim);
-    if(duplicadas.length > 0){
-        let conflitoMsg = duplicadas.map(c=>`${c.data_inicio} a ${c.data_fim}`).join(", ");
-        document.getElementById("errorMessages").innerText =
-        "❌ Datas em conflito: " + conflitoMsg;
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
+        // ENVIO PARA SUPABASE
+        const { data, error } = await supabase.from("fid_coordenacao").insert([{
+            nome,
+            tipo_dias: tipoDias,
+            data_inicio: dataInicio,
+            data_fim: dataFim,
+            total_dias: totalDias
+        }]);
 
-    const limite = await verificarLimites(nome,tipoDias,totalDias);
-    if(!limite.pode){
-        let msg = "";
-        let autorizados = limite.limiteTotal;
-        if(tipoDias === "F25") msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
-        else if(tipoDias === "Preferenciais") msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
-        else if(tipoDias === "Não Preferenciais") msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
-        document.getElementById("errorMessages").innerText = msg;
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
+        if(error){
+            console.error("Erro Supabase:", error);
+            errorMessages.innerText = "❌ Erro ao enviar para Supabase. Veja console.";
+            errorMessages.style.display = "block";
+            return;
+        }
 
-    await supabase.from("fid_coordenacao").insert([{
-        nome,
-        tipo_dias: tipoDias,
-        data_inicio: dataInicio,
-        data_fim: dataFim,
-        total_dias: totalDias
-    }]);
+        // MENSAGEM DE SUCESSO
+        successMessage.innerText = `✔️ Pedido Registado: ${nome} (${tipoDias}) ${dataInicio} a ${dataFim} (${totalDias} dias úteis)`;
+        errorMessages.style.display = "none";
 
-    document.getElementById("successMessage").innerText =
-    `✔️ Pedido Registado: ${nome} (${tipoDias}) ${dataInicio} a ${dataFim} (${totalDias} dias úteis)`;
-    document.getElementById("errorMessages").style.display="none";
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <strong>Pedido Registado:</strong><br>
+            Nome: ${nome}<br>
+            Tipo: ${tipoDias}<br>
+            Data Início: ${dataInicio}<br>
+            Data Fim: ${dataFim}<br>
+            Dias Úteis: ${totalDias}
+        `;
+        document.getElementById("resumoPedidos").appendChild(div);
 
-    const div = document.createElement("div");
-    div.innerHTML = `
-        <strong>Pedido Registado:</strong><br>
-        Nome: ${nome}<br>
-        Tipo: ${tipoDias}<br>
-        Data Início: ${dataInicio}<br>
-        Data Fim: ${dataFim}<br>
-        Dias Úteis: ${totalDias}
-    `;
-    document.getElementById("resumoPedidos").appendChild(div);
-
-    e.target.reset();
-    document.getElementById("diasCalculados").innerText = "Dias úteis calculados: 0";
-});
+        e.target.reset();
+        document.getElementById("diasCalculados").innerText = "Dias úteis calculados: 0";
+    });
+}
 </script>
 
 </body>
