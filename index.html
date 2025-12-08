@@ -16,17 +16,16 @@ body {
     justify-content: center;
     padding-top: 40px;
 }
-#passwordPrompt, #formContainer {
+#formContainer {
     background-color: white;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(15, 61, 46, 0.2);
     max-width: 400px;
     width: 100%;
-    margin-bottom: 20px;
 }
 label { display: block; margin-bottom: 10px; color: #0f3d2e; }
-select, input[type="date"], input[type="password"] {
+select, input[type="date"] {
     padding: 8px; margin-bottom: 15px; width: 100%;
     border: 1px solid #0f3d2e; border-radius: 6px;
     background-color: #f8fdfb; color: #0f3d2e;
@@ -39,8 +38,7 @@ button:hover { background-color: #0c3326; }
 .error { color: #a33; margin-top: 10px; display: none; }
 .success { color: green; font-weight: bold; margin-top: 15px; }
 #detalhesReserva { margin-top: 20px; }
-#formContainer { display: none; }
-h1, h2 { text-align: center; }
+h1 { text-align: center; }
 #resumoPedidos div {
     border: 1px solid #0f3d2e;
     padding: 10px;
@@ -51,15 +49,6 @@ h1, h2 { text-align: center; }
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="passwordPrompt">
-<h1> 2026</h1>
-<label for="password">Digite a senha para acessar o formulário:</label>
-<input type="password" id="password" required>
-<button id="btnEntrar" type="button">Entrar</button>
-<div id="senhaErro" class="error">Senha incorreta. Tente novamente.</div>
-</div>
 
 <!-- FORMULÁRIO -->
 <div id="formContainer">
@@ -105,24 +94,16 @@ const supabase = createClient(
 );
 
 // ---- FERIADOS ----
-const feriados = [
-    "2025-04-25",
-    "2025-04-18",
-    "2025-05-01",
-    "2025-12-25",
-    "2026-01-01"
-];
+const feriados = ["2025-04-25","2025-04-18","2025-05-01","2025-12-25","2026-01-01"];
 
-// ---- VERIFICAÇÃO FIM-DE-SEMANA / FERIADO COM LISTA ----
+// ---- FUNÇÕES ----
 function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
     let conflitos = [];
     let start = new Date(dataInicio);
     let end = new Date(dataFim);
-
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
-
         if(dia===0 || dia===6 || feriados.includes(f)){
             conflitos.push(f);
         }
@@ -134,7 +115,6 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     const start = new Date(dataInicio);
     const end = new Date(dataFim);
     let dias = 0;
-
     for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
         const f = d.toISOString().split("T")[0];
         const dia = d.getDay();
@@ -144,7 +124,6 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     return dias;
 }
 
-// --- DUPLICADAS ---
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabase
         .from('fid_coordenacao')
@@ -161,9 +140,7 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     });
 }
 
-// --- LIMITES ---
 async function verificarLimites(nome,tipoDias,diasNovo){
-
     const limites = {
         "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
         "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
@@ -193,7 +170,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
 
-    // 🔥 REGRA 1 - FÉRIAS 2025 ATÉ 30/04/2026
+    // REGRA 1 - FÉRIAS 2025 ATÉ 30/04/2026
     if(tipoDias === "F25"){
         const limiteF25 = "2026-04-30";
         if(dataInicio > limiteF25 || dataFim > limiteF25){
@@ -204,7 +181,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         }
     }
 
-    // 🔥 REGRA 2 - BLOQUEAR DEZEMBRO 2026 (exceto 24/12/2026)
+    // REGRA 2 - BLOQUEAR DEZEMBRO 2026 (exceto 24/12/2026)
     const inicioDec = "2026-12-01";
     const fimDec = "2026-12-30";
     const excecao = "2026-12-24";
@@ -249,20 +226,11 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     const limite = await verificarLimites(nome,tipoDias,totalDias);
     if(!limite.pode){
-
         let msg = "";
         let autorizados = limite.limiteTotal;
-
-        if(tipoDias === "F25"){
-            msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
-        }
-        else if(tipoDias === "Preferenciais"){
-            msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
-        }
-        else if(tipoDias === "Não Preferenciais"){
-            msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
-        }
-
+        if(tipoDias === "F25") msg = `❌ ${autorizados} dias autorizados em Férias 2025.`;
+        else if(tipoDias === "Preferenciais") msg = `❌ ${autorizados} dias autorizados em Preferenciais 2026.`;
+        else if(tipoDias === "Não Preferenciais") msg = `❌ ${autorizados} dias autorizados em Não Preferenciais 2026.`;
         document.getElementById("errorMessages").innerText = msg;
         document.getElementById("errorMessages").style.display="block";
         return;
@@ -293,16 +261,6 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     e.target.reset();
     document.getElementById("diasCalculados").innerText = "Dias úteis calculados: 0";
-});
-
-// --- LOGIN ---
-document.getElementById("btnEntrar").addEventListener("click",()=>{
-    if(document.getElementById("password").value === "FID2026_COORD"){
-        document.getElementById("passwordPrompt").style.display="none";
-        document.getElementById("formContainer").style.display="block";
-    } else {
-        document.getElementById("senhaErro").style.display="block";
-    }
 });
 </script>
 
