@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -148,7 +147,7 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     return dias;
 }
 
-// NOVO: Atualizar dias úteis dinamicamente
+// Atualizar dias úteis dinamicamente
 function atualizarDiasCalculados() {
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
@@ -166,7 +165,7 @@ document.getElementById("dataFim").addEventListener("change", atualizarDiasCalcu
 
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabaseClient
-        .from("fid_coordenacao")
+        .from("wrt_b2b")
         .select("data_inicio,data_fim")
         .eq("nome",nome);
 
@@ -187,7 +186,7 @@ async function verificarLimites(nome,tipoDias,diasNovo){
     };
 
     const { data } = await supabaseClient
-        .from("fid_coordenacao")
+        .from("wrt_b2b")
         .select("total_dias,tipo_dias")
         .eq("nome",nome)
         .eq("tipo_dias",tipoDias);
@@ -199,6 +198,27 @@ async function verificarLimites(nome,tipoDias,diasNovo){
         return { pode:false, limiteTotal: limite };
     }
     return { pode:true };
+}
+
+// Períodos bloqueados
+const bloqueios = [
+    { inicio: "2026-12-01", fim: "2026-12-30", excecao: "2026-12-24" }, // Dezembro
+    { inicio: "2026-01-01", fim: "2026-01-15" } // Janeiro 1ª quinzena
+];
+
+function intervaloBloqueado(d1, d2, bloqueios){
+    let start = new Date(d1);
+    let end = new Date(d2);
+
+    for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+        let f = d.toISOString().split("T")[0];
+        for(let b of bloqueios){
+            if(f >= b.inicio && f <= b.fim && (!b.excecao || f !== b.excecao)){
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
@@ -219,25 +239,9 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         }
     }
 
-    const inicioDec = "2026-12-01";
-    const fimDec = "2026-12-30";
-    const excecao = "2026-12-24";
-
-    function intervaloTemDezembro(d1,d2){
-        let start = new Date(d1);
-        let end = new Date(d2);
-        for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
-            let f = d.toISOString().split("T")[0];
-            if(f >= inicioDec && f <= fimDec && f !== excecao){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    if(intervaloTemDezembro(dataInicio,dataFim)){
+    if(intervaloBloqueado(dataInicio, dataFim, bloqueios)){
         document.getElementById("errorMessages").innerText =
-        "❌ Mês de Dezembro 2026 está bloqueado, exceto 24/12/2026.";
+        "❌ Pedido contém datas bloqueadas (Janeiro 1-15 ou Dezembro, exceto 24/12/2026).";
         document.getElementById("errorMessages").style.display="block";
         return;
     }
@@ -281,7 +285,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         return;
     }
 
-    await supabaseClient.from("fid_coordenacao").insert([{
+    await supabaseClient.from("wrt_b2b").insert([{
         nome,
         tipo_dias: tipoDias,
         data_inicio: dataInicio,
