@@ -73,8 +73,17 @@ h1, h2 { text-align: center; }
 <form id="reservaForm">
 <label for="nome">Nome:</label>
 <select id="nome" required>
-    <option value="Andreia Gralha">Andreia Gralha</option>
-    <option value="Telma Rosa">Telma Rosa</option>
+<option>Ana De Gomes Carvalho</option>
+<option>Daniel Filipe Silva Rodrigues</option>
+<option>Flávia Luana Silva Leitão</option>
+<option>Jhennyffer Valdez Ruíz</option>
+<option>Karine Garcia Teixeira</option>
+<option>Luís Miguel Coiteiro Fernandes</option>
+<option>Patricia Isabel Fernandes Pires</option>
+<option>Raquel Yara Alves Xavier</option>
+<option>Sheila Sandra Mapoissa</option>
+<option>Suellen dos Santos Nascimento Alves</option>
+<option>Tatiana de Fátima Gonçalves Santos Piçarra</option>
 </select>
 
 <label for="tipoDias">Tipo de Dias:</label>
@@ -186,8 +195,18 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
 
 async function verificarLimites(nome,tipoDias,diasNovo){
     const limites = {
-        "Andreia Gralha": { "F25": 0, "Preferenciais": 5, "Não Preferenciais": 10 },
-        "Telma Rosa": { "F25": 2, "Preferenciais": 2, "Não Preferenciais": 2 }
+"Ana Sofia Cardoso Faria": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Andreia Filipa Pereira Garcia": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Catarina Lisandra Fernandes Gonçalves": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Patricia Isabel Fernandes Pires": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Sheila Sandra Mapoissa": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Karine Garcia Teixeira": { "F25": 3, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Daniel Filipe Silva Rodrigues": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Raquel Yara Alves Xavier": { "F25": 4, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Luís Miguel Coiteiro Fernandes": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Sílvia Maria Lamas Ferreira": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Sofia do Carmo da Silva Pinto": { "F25": 1, "Preferenciais": 10, "Não Preferenciais": 12 }
+
     };
 
     const { data } = await supabaseClient
@@ -318,7 +337,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 });
 
 document.getElementById("btnEntrar").addEventListener("click",()=>{
-    if(document.getElementById("password").value === "TRWORTEN"){
+    if(document.getElementById("password").value === "WRTB2B-2026"){
         document.getElementById("passwordPrompt").style.display="none";
         document.getElementById("formContainer").style.display="block";
     } else {
