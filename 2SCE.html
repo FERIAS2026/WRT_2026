@@ -59,7 +59,7 @@ h1, h2 { text-align: center; }
 
 <!-- LOGIN -->
 <div id="passwordPrompt">
-<h1>EQUIPA OPERAÇÃO ESPANHA</h1>
+<h1>EQUIPA COORDENAÇÃO</h1>
 <label for="password">Password de Acesso:</label>
 <input type="password" id="password" required>
 <button id="btnEntrar">Entrar</button>
@@ -68,27 +68,15 @@ h1, h2 { text-align: center; }
 
 <!-- FORMULÁRIO -->
 <div id="formContainer">
-<h1>Equipa Operação Espanha</h1>
+<h1>Equipa Coordenação</h1>
 
 <form id="reservaForm">
 <label for="nome">Nome:</label>
 <select id="nome" required>
     <option>SELECIONAR NOME</option>
-<option>Andrea Gisele Klug Gómez</option>
-<option>Andreina Caridad Sanchez Mazutiel</option>
-<option>Argeni José Pérez Blanco</option>
-<option>Asunción Inés Calaña Balmaseda</option>
-<option>Elisama Siburo Picart</option>
-<option>Jose Antonio Gonçalves Pereira</option>
-<option>Jose Gregorio Salazar De Sousa</option>
-<option>Kimberly Brilly Gonçalves Jauregui</option>
-<option>Lisbeth Coromoto Moncada Ramirez</option>
-<option>Maria Alexandra Guerrero Rodriguez</option>
-<option>Maribel Maricela Obando Morán</option>
-<option>Michelle Maria Escalona Aponte</option>
-<option>Paola Carolina Bravo Villalobos</option>
-<option>Rocio Pilar Orna Caceres</option>
-<option>Rosa Azucena Castiblanco Herrera</option>
+<option>Andreia Soraia Pereira Cardoso</option>
+<option>Margarida Francisco</option>
+<option>Ricardo Filipe Lopes Reis</option>
 
 
 </select>
@@ -178,7 +166,6 @@ function calcularDiasEntreDatas(dataInicio,dataFim){
     return dias;
 }
 
-    
 // Atualizar dias úteis dinamicamente
 function atualizarDiasCalculados() {
     const dataInicio = document.getElementById("dataInicio").value;
@@ -197,7 +184,7 @@ document.getElementById("dataFim").addEventListener("change", atualizarDiasCalcu
 
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabaseClient
-        .from("wrt_operacaoespanha")
+        .from("wrt_coordenacao")
         .select("data_inicio,data_fim")
         .eq("nome",nome);
 
@@ -213,28 +200,15 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
 
 async function verificarLimites(nome,tipoDias,diasNovo){
     const limites = {
-"Argeni José Pérez Blanco": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Jose Gregorio Salazar De Sousa": { "F25": 1, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Andrea Gisele Klug Gómez": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Andreina Caridad Sanchez Mazutiel": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Asunción Inés Calaña Balmaseda": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Elisama Siburo Picart": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Jose Antonio Gonçalves Pereira": { "F25": 2, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Kimberly Brilly Gonçalves Jauregui": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Lisbeth Coromoto Moncada Ramirez": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Maria Alexandra Guerrero Rodriguez": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Maribel Maricela Obando Morán": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Paola Carolina Bravo Villalobos": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Rocio Pilar Orna Caceres": { "F25": 3, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Rosa Azucena Castiblanco Herrera": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Michelle Maria Escalona Aponte": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-
+"Andreia Soraia Pereira Cardoso": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 11 },
+"Margarida Francisco": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Ricardo Filipe Lopes Reis": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
 
 
     };
 
     const { data } = await supabaseClient
-        .from("wrt_operacaoespanha")
+        .from("wrt_coordenacao")
         .select("total_dias,tipo_dias")
         .eq("nome",nome)
         .eq("tipo_dias",tipoDias);
@@ -294,7 +268,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         return;
     }
 
-  const conflitos = listarConflitosFDS_FERIADOS(dataInicio, dataFim);
+const conflitos = listarConflitosFDS_FERIADOS(dataInicio, dataFim);
 let mensagensErro = [];
 
 if (conflitos.finsSemana.length > 0) {
@@ -314,7 +288,6 @@ if (mensagensErro.length > 0) {
     document.getElementById("errorMessages").style.display = "block";
     return;
 }
-
 
     const totalDias = calcularDiasEntreDatas(dataInicio,dataFim);
 
@@ -347,7 +320,7 @@ if (mensagensErro.length > 0) {
         return;
     }
 
-    await supabaseClient.from("wrt_operacaoespanha").insert([{
+    await supabaseClient.from("wrt_coordenacao").insert([{
         nome,
         tipo_dias: tipoDias,
         data_inicio: dataInicio,
@@ -375,7 +348,7 @@ if (mensagensErro.length > 0) {
 });
 
 document.getElementById("btnEntrar").addEventListener("click",()=>{
-    if(document.getElementById("password").value === "WRTSCEntregas2026"){
+    if(document.getElementById("password").value === "WRTCoordenação**2026"){
         document.getElementById("passwordPrompt").style.display="none";
         document.getElementById("formContainer").style.display="block";
     } else {
