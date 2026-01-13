@@ -229,19 +229,30 @@ const feriados = [
 ];
 
 
-function listarConflitosFDS_FERIADOS(dataInicio,dataFim){
-    let conflitos = [];
+
+function listarConflitosFDS_FERIADOS(dataInicio, dataFim) {
+    let finsSemana = [];
+    let feriadosEncontrados = [];
+
     let start = new Date(dataInicio);
     let end = new Date(dataFim);
 
-    for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         let f = d.toISOString().split("T")[0];
         let dia = d.getDay();
-        if(dia===0 || dia===6 || feriados.includes(f)){
-            conflitos.push(f);
+
+        if (dia === 0 || dia === 6) {
+            finsSemana.push(f);
+        } 
+        else if (feriados.includes(f)) {
+            feriadosEncontrados.push(f);
         }
     }
-    return conflitos;
+
+    return {
+        finsSemana,
+        feriados: feriadosEncontrados
+    };
 }
 
 function calcularDiasEntreDatas(dataInicio,dataFim){
@@ -414,7 +425,7 @@ async function verificarLimites(nome,tipoDias,diasNovo){
 
 // Períodos bloqueados
 const bloqueios = [
-    { inicio: "2026-11-01", fim: "2026-12-31", excecao: "2026-12-24" }, // Deze
+    { inicio: "2026-11-01", fim: "2026-12-30", excecao: "2026-12-24" }, // Deze
     { inicio: "2026-01-01", fim: "2026-01-15" } // Janeiro 1ª quinzena
 ];
 
@@ -453,18 +464,32 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     if(intervaloBloqueado(dataInicio, dataFim, bloqueios)){
         document.getElementById("errorMessages").innerText =
-        "❌ Datas bloqueadas (Primeira Quinzena de Janeiro / Mês de Novembro e Dezembro,exceto 24/12/2026).";
+        "❌ Datas bloqueadas ( Mês de Novembro e Dezembro,exceto 24/12/2026 e 31/12/2026).";
         document.getElementById("errorMessages").style.display="block";
         return;
     }
 
-    const conflitosDatas = listarConflitosFDS_FERIADOS(dataInicio,dataFim);
-    if(conflitosDatas.length > 0){
-        document.getElementById("errorMessages").innerText =
-        "❌ Pedido não pode conter Fins de Semana ou Feriados: " + conflitosDatas.join(", ");
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
+  const conflitos = listarConflitosFDS_FERIADOS(dataInicio, dataFim);
+let mensagensErro = [];
+
+if (conflitos.finsSemana.length > 0) {
+    mensagensErro.push(
+        "❌ O pedido não pode conter Fins de Semana: " + conflitos.finsSemana.join(", ")
+    );
+}
+
+if (conflitos.feriados.length > 0) {
+    mensagensErro.push(
+        "❌ O pedido não pode conter Feriados, caso pretendas usufruir do feriado deves agendar o dia útil anterior e posterior ao mesmo : " + conflitos.feriados.join(", ")
+    );
+}
+
+if (mensagensErro.length > 0) {
+    document.getElementById("errorMessages").innerHTML = mensagensErro.join("<br>");
+    document.getElementById("errorMessages").style.display = "block";
+    return;
+}
+
 
     const totalDias = calcularDiasEntreDatas(dataInicio,dataFim);
 
