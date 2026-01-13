@@ -224,7 +224,7 @@ async function verificarLimites(nome,tipoDias,diasNovo){
 
 // Períodos bloqueados
 const bloqueios = [
-    { inicio: "2026-11-01", fim: "2026-12-31", excecao: "2026-12-24" }, // Deze
+    { inicio: "2026-11-01", fim: "2026-12-30", excecao: "2026-12-24" }, // Deze
     { inicio: "2026-01-01", fim: "2026-01-15" } // Janeiro 1ª quinzena
 ];
 
@@ -263,7 +263,7 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
 
     if(intervaloBloqueado(dataInicio, dataFim, bloqueios)){
         document.getElementById("errorMessages").innerText =
-        "❌ Datas bloqueadas (Primeira Quinzena de Janeiro / Mês de Novembro e Dezembro,exceto 24/12/2026).";
+        "❌ Datas bloqueadas (Mês de Novembro e Dezembro,exceto 24/12/2026 e 31/12/2026).";
         document.getElementById("errorMessages").style.display="block";
         return;
     }
