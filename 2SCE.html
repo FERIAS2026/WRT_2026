@@ -59,7 +59,7 @@ h1, h2 { text-align: center; }
 
 <!-- LOGIN -->
 <div id="passwordPrompt">
-<h1>EQUIPA COORDENAÇÃO</h1>
+<h1>EQUIPA SERVICE CENTER ENTREGAS</h1>
 <label for="password">Password de Acesso:</label>
 <input type="password" id="password" required>
 <button id="btnEntrar">Entrar</button>
@@ -68,7 +68,7 @@ h1, h2 { text-align: center; }
 
 <!-- FORMULÁRIO -->
 <div id="formContainer">
-<h1>Equipa Coordenação</h1>
+<h1>Equipa Service Center Entregas</h1>
 
 <form id="reservaForm">
 <label for="nome">Nome:</label>
@@ -184,7 +184,7 @@ document.getElementById("dataFim").addEventListener("change", atualizarDiasCalcu
 
 async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
     const { data } = await supabaseClient
-        .from("wrt_coordenacao")
+        .from("wrt_scentregas")
         .select("data_inicio,data_fim")
         .eq("nome",nome);
 
@@ -208,7 +208,7 @@ async function verificarLimites(nome,tipoDias,diasNovo){
     };
 
     const { data } = await supabaseClient
-        .from("wrt_coordenacao")
+        .from("wrt_scentregas")
         .select("total_dias,tipo_dias")
         .eq("nome",nome)
         .eq("tipo_dias",tipoDias);
@@ -320,7 +320,7 @@ if (mensagensErro.length > 0) {
         return;
     }
 
-    await supabaseClient.from("wrt_coordenacao").insert([{
+    await supabaseClient.from("wrt_scentregas").insert([{
         nome,
         tipo_dias: tipoDias,
         data_inicio: dataInicio,
@@ -348,7 +348,7 @@ if (mensagensErro.length > 0) {
 });
 
 document.getElementById("btnEntrar").addEventListener("click",()=>{
-    if(document.getElementById("password").value === "WRTCoordenação**2026"){
+    if(document.getElementById("password").value === "WRTSCEntregas2026"){
         document.getElementById("passwordPrompt").style.display="none";
         document.getElementById("formContainer").style.display="block";
     } else {
