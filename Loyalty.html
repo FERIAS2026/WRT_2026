@@ -267,12 +267,6 @@ document.getElementById("reservaForm").addEventListener("submit", async(e)=>{
         }
     }
 
-    if(intervaloBloqueado(dataInicio, dataFim, bloqueios)){
-        document.getElementById("errorMessages").innerText =
-        "❌ Datas bloqueadas (Mês de Novembro e Dezembro,exceto 24/12/2026 e 31/12/2026).";
-        document.getElementById("errorMessages").style.display="block";
-        return;
-    }
 
   
 const conflitos = listarConflitosFDS_FERIADOS(dataInicio, dataFim);
