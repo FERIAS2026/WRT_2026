@@ -59,7 +59,7 @@ h1, h2 { text-align: center; }
 
 <!-- LOGIN -->
 <div id="passwordPrompt">
-<h1>EQUIPA CVR</h1>
+<h1>EQUIPA B2B</h1>
 <label for="password">Password de Acesso:</label>
 <input type="password" id="password" required>
 <button id="btnEntrar">Entrar</button>
@@ -68,20 +68,26 @@ h1, h2 { text-align: center; }
 
 <!-- FORMULÁRIO -->
 <div id="formContainer">
-<h1>Equipa CVR</h1>
+<h1>Equipa B2B</h1>
 
 <form id="reservaForm">
 <label for="nome">Nome:</label>
 <select id="nome" required>
     <option></option>
-<option>Ana Fernanda de Meneses Antunes</option>
-<option>Carlos Manuel Dias Delgado</option>
-<option>Dheila dos Santos Soares Mendes</option>
-<option>Igor Edgard de Oliveira da Cruz Guimarães</option>
-<option>Maria de Lima Vaz</option>
-<option>Pedro Luís Sousa Rodrigues</option>
-<option>Solange Fernandes Guimarães</option>
+<option>Ana Sofia Cardoso Faria</option>
+<option>Andreia Filipa Pereira Garcia</option>
+    <option>Alexandre Manuel Cirurgião Caldeira</option>
+<option>Bárbara Alexandra dos Santos Massano Miguel</option>
 
+<option>Catarina Lisandra Fernandes Gonçalves</option>
+<option>Patricia Isabel Fernandes Pires</option>
+<option>Sheila Sandra Mapoissa</option>
+<option>Karine Garcia Teixeira</option>
+<option>Daniel Filipe Silva Rodrigues</option>
+<option>Raquel Yara Alves Xavier</option>
+<option>Luís Miguel Coiteiro Fernandes</option>
+<option>Sílvia Maria Lamas Ferreira</option>
+<option>Sofia do Carmo da Silva Pinto</option>
 </select>
     
 <label for="tipoDias">Tipo de Dias:</label>
@@ -202,14 +208,19 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
 
 async function verificarLimites(nome,tipoDias,diasNovo){
     const limites = {
-"Ana Fernanda de Meneses Antunes": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Carlos Manuel Dias Delgado": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Dheila dos Santos Soares Mendes": { "F25": 0 , "Preferenciais": 10, "Não Preferenciais": 12 },
-"Igor Edgard de Oliveira da Cruz Guimarães": 0 { "F25": , "Preferenciais": 10, "Não Preferenciais": 12 },
-"Maria de Lima Vaz": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Pedro Luís Sousa Rodrigues": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-"Solange Fernandes Guimarães": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
-
+"Ana Sofia Cardoso Faria": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Andreia Filipa Pereira Garcia": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Catarina Lisandra Fernandes Gonçalves": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Patricia Isabel Fernandes Pires": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Sheila Sandra Mapoissa": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Karine Garcia Teixeira": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 8 },
+"Daniel Filipe Silva Rodrigues": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Raquel Yara Alves Xavier": { "F25":0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Luís Miguel Coiteiro Fernandes": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Sílvia Maria Lamas Ferreira": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+        "Alexandre Manuel Cirurgião Caldeira": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Bárbara Alexandra dos Santos Massano Miguel": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
+"Sofia do Carmo da Silva Pinto": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 }
 
     };
 
@@ -354,7 +365,7 @@ if (mensagensErro.length > 0) {
 });
 
 document.getElementById("btnEntrar").addEventListener("click",()=>{
-    if(document.getElementById("password").value === "WRTCVR*"){
+    if(document.getElementById("password").value === "WRTB2B-2026"){
         document.getElementById("passwordPrompt").style.display="none";
         document.getElementById("formContainer").style.display="block";
     } else {
