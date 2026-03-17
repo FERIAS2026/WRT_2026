@@ -74,7 +74,6 @@ h1, h2 { text-align: center; }
 <label for="nome">Nome:</label>
 <select id="nome" required>
     <option></option>
-<option>Ana Raquel dos Santos Cruz</option>
 <option>João Pedro Pereira da Rocha</option>
 <option>Lucas Nathan da Silva</option>
 <option>Márcio Renato Goverffo Silva</option>
@@ -204,7 +203,6 @@ async function verificarDatasDuplicadas(nome,dataInicio,dataFim){
 
 async function verificarLimites(nome,tipoDias,diasNovo){
     const limites = {
-"Ana Raquel dos Santos Cruz": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
 "João Pedro Pereira da Rocha": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
 "Lucas Nathan da Silva": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
 "Márcio Renato Goverffo Silva": { "F25": 0, "Preferenciais": 10, "Não Preferenciais": 12 },
